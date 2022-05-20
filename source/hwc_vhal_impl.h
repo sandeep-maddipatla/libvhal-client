@@ -1,3 +1,22 @@
+/**
+ * Copyright (C) 2022 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef HWC_VHAL_IMPL_H
 #define HWC_VHAL_IMPL_H
 #include <atomic>
@@ -12,6 +31,7 @@
 #include "istream_socket_client.h"
 
 #include "display-protocol.h"
+#include "hwc_profile_log.h"
 using namespace std;
 
 #define fourcc_code(a,b,c,d) ((uint32_t)(a) | ((uint32_t)(b) << 8) | \
@@ -33,13 +53,16 @@ public:
         AIC_LOG(mDebug, "info.user_id: %d", info.user_id);
         AIC_LOG(mDebug, "info.unix_conn_info.socket_dir: %s", info.unix_conn_info.socket_dir.c_str());
         AIC_LOG(mDebug, "info.unix_conn_info.android_instance_id: %d", info.unix_conn_info.android_instance_id);
+
+        m_pLog = std::make_unique<ProfileLogger>();
+        m_pLog->Initialize(info.video_res_width, info.video_res_height);
     }
 
     ~Impl()
     {
         if (should_continue_) {
             stop();
-	}
+        }
     }
 
     cros_gralloc_handle_t get_handle(uint64_t h)
@@ -190,6 +213,8 @@ public:
             error_msg = std::strerror(errno);
             return {-1, error_msg};
         }
+        m_pLog->LogChangeResolutionEvent(width, height, &ev);
+
         return {0, error_msg};
     }
 
@@ -213,6 +238,8 @@ public:
             error_msg = std::strerror(errno);
             return {-1, error_msg};
         }
+        m_pLog->LogSetAlphaEvent(&ev);
+
         return {0, error_msg};
     }
 
@@ -256,6 +283,12 @@ public:
                     AIC_LOG(mDebug, "client disconnected: %s\n", strerror(errno));
                     break;
                 } else {
+                    log_event_t eventType = m_pLog->TranslateEvType(ev.type);
+                    m_pLog->UpdateEventCount(eventType);
+
+                    m_pLog->AcquireMutex();
+                    m_pLog->LogGenericEventInfo(eventType, &ev);
+
                     switch (ev.type) {
                         case VHAL_DD_EVENT_DISPINFO_REQ:
                           if (checkDispConfig(ev.id, ev.renderNode) == -1) {
@@ -286,6 +319,8 @@ public:
                           AIC_LOG(mDebug, "VHAL_DD_EVENT_<unknown>: ev.type=%d\n", ev.type);
                           break;
                     } // end of switch
+
+                    m_pLog->ReleaseMutex();
                 } //end of else
             }
         } // end of while
@@ -341,6 +376,9 @@ public:
         if (len <= 0) {
             AIC_LOG(mDebug, "send() failed: %s\n", strerror(errno));
         }
+
+        m_pLog->LogGenericEventInfo(EVENT_DISPINFO_REQ_ACK);
+        m_pLog->AddDisplayInfoEventStruct(&ev);
     }
 
     void UpdateDispPort(int fd) {
@@ -355,6 +393,9 @@ public:
       if (len <= 0) {
           AIC_LOG(mDebug, "send() failed: %s\n", strerror(errno));
       }
+
+      m_pLog->LogGenericEventInfo(EVENT_DISPPORT_REQ_ACK);
+      m_pLog->AddDisplayPortEventStruct(&ev);
     }
 
     /* msg has 2 parts: header and body
@@ -385,6 +426,7 @@ public:
             AIC_LOG(mDebug, "Failed to read buffer info: %s\n", strerror(errno));
             return -1;
         }
+        m_pLog->AddBufferInfoStruct(&ev.info, 2);
 
         len = recv(fd, handle, sizeof(cros_gralloc_handle), 0);
         if (len <= 0) {
@@ -392,6 +434,7 @@ public:
             AIC_LOG(mDebug, "Failed to read buffer info: %s\n", strerror(errno));
             return -1;
         }
+
         if (recvFds(fd, handle->fds, handle->base.numFds) == -1) {
             free(handle);
             return -1;
@@ -400,6 +443,10 @@ public:
         if (handle->format == DRM_FORMAT_NV12_Y_TILED_INTEL) {
             handle->format = DRM_FORMAT_NV12;
         }
+
+        //Dump YML log after file descriptors are captured into "handle"
+        m_pLog->AddGrallocHandleStruct(handle, 2);
+
         AIC_LOG(mDebug, "createBuffer width(%d)height(%d)\n", handle->width, handle->height);
         mHandles.insert(std::make_pair(ev.info.remote_handle, handle));
         frame_info_t frame = {.handle = handle, .ctrl = nullptr};
@@ -418,6 +465,7 @@ public:
             AIC_LOG(mDebug, "Failed to read buffer info: %s\n", strerror(errno));
             return -1;
         }
+        m_pLog->AddBufferInfoStruct(&ev.info, 2);
 
         cros_gralloc_handle_t handle = get_handle(ev.info.remote_handle);
         if (!handle) {
@@ -425,6 +473,7 @@ public:
         }
         frame_info_t frame = {.handle = handle, .ctrl = nullptr};
         mHwcHandler(FRAME_REMOVE, &frame);
+
         close(handle->fds[0]);
         free(handle);
 
@@ -445,6 +494,8 @@ public:
             AIC_LOG(mDebug, "Failed to read buffer info: %s\n", strerror(errno));
             return -1;
         }
+        m_pLog->AddBufferInfoStruct(&ev.info, 2);
+
         display_control_t ctrl{};
         bool hasCtrl = (size == (sizeof(ev.info) + sizeof(display_control_t)));
         if (hasCtrl) {
@@ -453,6 +504,7 @@ public:
                 AIC_LOG(mDebug, "Failed to read display control info: %s\n", strerror(errno));
                 return -1;
             }
+            m_pLog->AddDisplayControlStruct(&ctrl, 2);
         }
 
         cros_gralloc_handle_t handle = get_handle(ev.info.remote_handle);
@@ -470,6 +522,8 @@ public:
             AIC_LOG(mDebug, "send() failed: %s\n", strerror(errno));
             return -1;
         }
+        m_pLog->LogGenericEventInfo(EVENT_DISPLAY_REQ_ACK);
+        m_pLog->AddBufferInfoEventStruct(&ev);
 
         return 0;
     }
@@ -484,6 +538,7 @@ public:
         int sockClientFd = -1;
         int mDebug = 2;
         std::map<uint64_t, cros_gralloc_handle_t> mHandles;
+        std::unique_ptr<ProfileLogger> m_pLog;
 
 };
 }
