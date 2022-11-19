@@ -1,0 +1,375 @@
+# This log captures events submitted to libvhal and ICR shared lib
+# Events Code:
+# 1: VHAL_DD_EVENT_CREATE_BUFFER
+# 2: VHAL_DD_EVENT_REMOVE_BUFFER
+# 3: VHAL_DD_EVENT_DISPLAY_REQ
+# 4: VHAL_DD_EVENT_DISPINFO_REQ
+# 5: VHAL_DD_EVENT_DISPPORT_REQ
+# 6: VHAL_DD_EVENT_DISPLAY_ACK
+# 7: VHAL_DD_EVENT_DISPINFO_ACK
+# 8: VHAL_DD_EVENT_DISPPORT_ACK
+# 9: VHAL_DD_EVENT_SETUP_RESOLUTION
+# 10: EVENT_UNKNOWN
+
+---
+event:
+    metadata:
+        eventId: 0
+        eventName: VHAL_DD_EVENT_DISPINFO_REQ
+        direction: receive
+        timeStampUs: 1667444366740170
+        counts:
+            CreateBufferEvents: 0
+            RemoveBufferEvents: 0
+            DisplayReqEvents: 0
+            ChangeResolutionEvents: 0
+            DispInfoReqEvents: 1
+            DispPortReqEvents: 0
+    display_event_t:
+        struct_size: 16
+        type: 0x1000
+        size: 16
+        id: 1
+        renderNode: 0
+
+...
+
+---
+event:
+    metadata:
+        eventId: 1
+        eventName: VHAL_DD_EVENT_DISPINFO_ACK
+        direction: send
+        timeStampUs: 1667444366740347
+        counts:
+            CreateBufferEvents: 0
+            RemoveBufferEvents: 0
+            DisplayReqEvents: 0
+            ChangeResolutionEvents: 0
+            DispInfoReqEvents: 1
+            DispPortReqEvents: 0
+    display_info_event_t:
+        struct_size: 60
+        display_event_t:
+            struct_size: 16
+            type: 0x1001
+            size: 60
+            id: 0
+            renderNode: 0
+        display_info_t:
+            struct_size: 44
+            flags: 0x1
+            width: 1280
+            height: 720
+            stride: 1280
+            format: 5
+            xdpi: 240.000000
+            ydpi: 240.000000
+            fps: 60.000000
+            minSwapInterval: 1
+            maxSwapInterval: 1
+            numFramebuffers: 2
+
+...
+
+---
+event:
+    metadata:
+        eventId: 2
+        eventName: VHAL_DD_EVENT_CREATE_BUFFER
+        direction: receive
+        timeStampUs: 1667444366754731
+        counts:
+            CreateBufferEvents: 1
+            RemoveBufferEvents: 0
+            DisplayReqEvents: 0
+            ChangeResolutionEvents: 0
+            DispInfoReqEvents: 1
+            DispPortReqEvents: 0
+    buffer_info_event_t:
+        struct_size: 24
+        display_event_t:
+            struct_size: 16
+            type: 0x1002
+            size: 228
+            id: 0
+            renderNode: 0
+        buffer_info_t:
+            struct_size: 8
+            remote_handle: 132698973135424
+            data: 0
+        cros_gralloc_handle_t:
+            struct_size: 204
+            native_handle_t:
+                struct_size: 12
+                version: 12
+                numFds: 1
+                numInts: 47
+                data: 0
+            fds: [10, 0, 0, 0]
+            strides: [5120, 0, 0, 0]
+            offsets: [0, 0, 0, 0]
+            sizes: [3686400, 0, 0, 0]
+            format_modifiers: [0, 0, 0, 0, 0, 0, 0, 0]
+            width: 1280
+            height: 720
+            format: 875708993
+            tiling_mode: 5120
+            use_flags: [0, 131077]
+            magic: 2882395322
+            pixel_stride: 1280
+            droid_format: 1
+            usage: 6656
+            consumer_usage: 6656
+            producer_usage: 6656
+            yuv_color_range: 0
+            is_updated: 0
+            is_encoded: 0
+            is_encrypted: 0
+            is_key_frame: 0
+            is_interlaced: 0
+            is_mmc_capable: 0
+            compression_mode: 0
+            compression_hint: 0
+            codec: 0
+            aligned_width: 1280
+            aligned_height: 720
+
+...
+
+---
+event:
+    metadata:
+        eventId: 3
+        eventName: VHAL_DD_EVENT_DISPLAY_REQ
+        direction: receive
+        timeStampUs: 1667444366755208
+        counts:
+            CreateBufferEvents: 1
+            RemoveBufferEvents: 0
+            DisplayReqEvents: 1
+            ChangeResolutionEvents: 0
+            DispInfoReqEvents: 1
+            DispPortReqEvents: 0
+    buffer_info_event_t:
+        struct_size: 24
+        display_event_t:
+            struct_size: 16
+            type: 0x1004
+            size: 24
+            id: 0
+            renderNode: 0
+        buffer_info_t:
+            struct_size: 8
+            remote_handle: 132698973135424
+            data: 0
+
+...
+
+---
+event:
+    metadata:
+        eventId: 4
+        eventName: VHAL_DD_EVENT_DISPLAY_ACK
+        direction: send
+        timeStampUs: 1667444366755445
+        counts:
+            CreateBufferEvents: 1
+            RemoveBufferEvents: 0
+            DisplayReqEvents: 1
+            ChangeResolutionEvents: 0
+            DispInfoReqEvents: 1
+            DispPortReqEvents: 0
+    buffer_info_event_t:
+        struct_size: 24
+        display_event_t:
+            struct_size: 16
+            type: 0x1005
+            size: 24
+            id: 0
+            renderNode: 0
+        buffer_info_t:
+            struct_size: 8
+            remote_handle: 132698973135424
+            data: 0
+
+...
+
+---
+event:
+    metadata:
+        eventId: 5
+        eventName: VHAL_DD_EVENT_CREATE_BUFFER
+        direction: receive
+        timeStampUs: 1667444400054783
+        counts:
+            CreateBufferEvents: 2
+            RemoveBufferEvents: 0
+            DisplayReqEvents: 1
+            ChangeResolutionEvents: 0
+            DispInfoReqEvents: 1
+            DispPortReqEvents: 0
+    buffer_info_event_t:
+        struct_size: 24
+        display_event_t:
+            struct_size: 16
+            type: 0x1002
+            size: 228
+            id: 0
+            renderNode: 0
+        buffer_info_t:
+            struct_size: 8
+            remote_handle: 132698973133408
+            data: 0
+        cros_gralloc_handle_t:
+            struct_size: 204
+            native_handle_t:
+                struct_size: 12
+                version: 12
+                numFds: 1
+                numInts: 47
+                data: 0
+            fds: [16, 0, 0, 0]
+            strides: [5120, 0, 0, 0]
+            offsets: [0, 0, 0, 0]
+            sizes: [3686400, 0, 0, 0]
+            format_modifiers: [0, 0, 0, 0, 0, 0, 0, 0]
+            width: 1280
+            height: 720
+            format: 875708993
+            tiling_mode: 5120
+            use_flags: [0, 131077]
+            magic: 2882395322
+            pixel_stride: 1280
+            droid_format: 1
+            usage: 6656
+            consumer_usage: 6656
+            producer_usage: 6656
+            yuv_color_range: 0
+            is_updated: 0
+            is_encoded: 0
+            is_encrypted: 0
+            is_key_frame: 0
+            is_interlaced: 0
+            is_mmc_capable: 0
+            compression_mode: 0
+            compression_hint: 0
+            codec: 0
+            aligned_width: 1280
+            aligned_height: 720
+
+...
+
+---
+event:
+    metadata:
+        eventId: 6
+        eventName: VHAL_DD_EVENT_DISPLAY_REQ
+        direction: receive
+        timeStampUs: 1667444400055312
+        counts:
+            CreateBufferEvents: 2
+            RemoveBufferEvents: 0
+            DisplayReqEvents: 2
+            ChangeResolutionEvents: 0
+            DispInfoReqEvents: 1
+            DispPortReqEvents: 0
+    buffer_info_event_t:
+        struct_size: 24
+        display_event_t:
+            struct_size: 16
+            type: 0x1004
+            size: 24
+            id: 0
+            renderNode: 0
+        buffer_info_t:
+            struct_size: 8
+            remote_handle: 132698973133408
+            data: 0
+
+...
+
+---
+event:
+    metadata:
+        eventId: 7
+        eventName: VHAL_DD_EVENT_DISPLAY_ACK
+        direction: send
+        timeStampUs: 1667444400055543
+        counts:
+            CreateBufferEvents: 2
+            RemoveBufferEvents: 0
+            DisplayReqEvents: 2
+            ChangeResolutionEvents: 0
+            DispInfoReqEvents: 1
+            DispPortReqEvents: 0
+    buffer_info_event_t:
+        struct_size: 24
+        display_event_t:
+            struct_size: 16
+            type: 0x1005
+            size: 24
+            id: 0
+            renderNode: 0
+        buffer_info_t:
+            struct_size: 8
+            remote_handle: 132698973133408
+            data: 0
+
+...
+
+---
+event:
+    metadata:
+        eventId: 8
+        eventName: VHAL_DD_EVENT_DISPLAY_REQ
+        direction: receive
+        timeStampUs: 1667444400087373
+        counts:
+            CreateBufferEvents: 2
+            RemoveBufferEvents: 0
+            DisplayReqEvents: 3
+            ChangeResolutionEvents: 0
+            DispInfoReqEvents: 1
+            DispPortReqEvents: 0
+    buffer_info_event_t:
+        struct_size: 24
+        display_event_t:
+            struct_size: 16
+            type: 0x1004
+            size: 24
+            id: 0
+            renderNode: 0
+        buffer_info_t:
+            struct_size: 8
+            remote_handle: 132698973135424
+            data: 0
+
+...
+
+---
+event:
+    metadata:
+        eventId: 9
+        eventName: VHAL_DD_EVENT_DISPLAY_ACK
+        direction: send
+        timeStampUs: 1667444400087588
+        counts:
+            CreateBufferEvents: 2
+            RemoveBufferEvents: 0
+            DisplayReqEvents: 3
+            ChangeResolutionEvents: 0
+            DispInfoReqEvents: 1
+            DispPortReqEvents: 0
+    buffer_info_event_t:
+        struct_size: 24
+        display_event_t:
+            struct_size: 16
+            type: 0x1005
+            size: 24
+            id: 0
+            renderNode: 0
+        buffer_info_t:
+            struct_size: 8
+            remote_handle: 132698973135424
+            data: 0
