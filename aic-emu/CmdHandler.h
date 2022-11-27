@@ -86,7 +86,6 @@ struct AicSocketData_t
     int session_id; //server session Id
     int user_id;    //user Id
     std::string hwc_sock; //socket path
-    int android_instance_id;
 };
 
 
@@ -117,10 +116,19 @@ struct AicEventMetadata_t
     AicEventCounters counts;
 };
 
+struct AicConfigData_t
+{
+    std::string ymlFileName;
+    std::string contentFileName;
+    std::string deviceString;
+    AicSocketData_t socketInfo;
+    bool        manageFps;
+};
+
 class CmdHandler
 {
 public:
-    CmdHandler(std::string ymlFile, std::string inputFile, AicSocketData_t* info);
+    CmdHandler(AicConfigData_t& config);
     ~CmdHandler();
 
     int Init();
@@ -164,12 +172,14 @@ private:
     //INPUT File and Gfx Surface Handling
     std::string                       m_inputFileName;
     std::ifstream                     m_inputStream;
+    std::string                       m_gfxDeviceStr;
     GfxHandler                        m_gfx;
 
     //Struct holding operating surface parameters
     std::shared_ptr<cros_gralloc_handle> m_props;
 
     //fps management
+    bool                              m_manageFps;
     unsigned long                     m_lastDispReqSentTS;
     unsigned long                     m_lastDispReqYmlTS;
     unsigned long                     m_firstDispReqSentTS;

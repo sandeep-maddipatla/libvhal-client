@@ -20,24 +20,18 @@
 #include <memory>
 #include "CmdHandler.h"
 
-struct AicConfigData_t
-{
-    std::string ymlFileName;
-    std::string contentFileName;
-    std::string deviceString;
-    AicSocketData_t socketInfo;
-};
-
 void Usage()
 {
     std::cout << "Usage: aic-emu <mandatory options> [non-mandatory options] " << std::endl;
+    std::cout << "--help, -h                 : Print this help and exit" << std::endl;
     std::cout << "\nMandatory options:" << std::endl;
-    std::cout << "  --cmd <yml file path>  : Path of YML file containing AiC cmd sequence" << std::endl;
-    std::cout << "  --content <clip path>  : Path of clip to serve as content" << std::endl;
-    std::cout << "  --hwc-sock <socketpath>: Path of Unix Socket file" << std::endl;
+    std::cout << "  --cmd <yml file path>    : Path of YML file containing AiC cmd sequence" << std::endl;
+    std::cout << "  --content <clip path>    : Path of clip to serve as content" << std::endl;
+    std::cout << "  --hwc-sock <socket path> : Path of Unix Socket file. Note Instance ID (default 0) is appended internally." << std::endl;
     std::cout << "\nNon-Mandatory options:" << std::endl;
-    std::cout << "  --device <device path> : Device path. Default /dev/dri/renderD128" << std::endl;
-    std::cout << "  --help, -h             : Print this help and exit" << std::endl;
+    std::cout << "  --device <device path>   : Device path. Default /dev/dri/renderD128" << std::endl;
+    std::cout << "  --instance <id num>      : Number indicating instance ID. Default 0" << std::endl;
+    std::cout << "  --manage-fps <0/1>       : Match fps with timestamps in yml log. Default Enabled(1)" << std::endl;
     return;
 }
 
@@ -74,11 +68,18 @@ int ParseArgs(AicConfigData_t& config, int argc, char** argv)
             if (++idx >= argc)
                 break;
             config.socketInfo.hwc_sock = std::string(argv[idx]);
-
-            //Make rest of fields 0
-            config.socketInfo.session_id = 0;
-            config.socketInfo.user_id = 0;
-            config.socketInfo.android_instance_id = 0;
+        }
+        else if (std::string("--manage-fps") == argv[idx])
+        {
+            if (++idx >= argc)
+                break;
+            config.manageFps = (atoi(argv[idx]) == 1) ? true : false;
+        }
+        else if (std::string("--instance") == argv[idx])
+        {
+            if (++idx >= argc)
+                break;
+            config.socketInfo.session_id = atoi(argv[idx]);
         }
         else
         {
@@ -114,11 +115,11 @@ int main(int argc, char** argv)
 {
     int status = AICS_ERR_NONE;
 
-    AicConfigData_t config;
+    AicConfigData_t config = {  .socketInfo = {0} , .manageFps = true };
     status = ParseArgs(config, argc, argv);
     CHECK_STATUS(status);
 
-    auto handler = std::make_unique<CmdHandler>(config.ymlFileName, config.contentFileName, &config.socketInfo);
+    auto handler = std::make_unique<CmdHandler>(config);
     status = handler->Init();
     CHECK_STATUS(status);
 

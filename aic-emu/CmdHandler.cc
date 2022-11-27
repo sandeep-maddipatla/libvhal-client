@@ -26,32 +26,30 @@ using std::chrono::duration_cast;
 using std::chrono::microseconds;
 using std::chrono::system_clock;
 
-CmdHandler::CmdHandler(std::string ymlFile, std::string inputFile, AicSocketData_t* info):
-    m_ymlFileName(ymlFile),
-    m_inputFileName(inputFile),
+CmdHandler::CmdHandler(AicConfigData_t& config):
+    m_ymlFileName(config.ymlFileName),
+    m_inputFileName(config.contentFileName),
+    m_gfxDeviceStr(config.deviceString),
     m_props(nullptr),
+    m_manageFps(config.manageFps),
     m_lastDispReqSentTS(0),
     m_lastDispReqYmlTS(0),
     m_firstDispReqSentTS(0)
 {
-    if (info)
+    //Socket related data
+    if (!config.socketInfo.hwc_sock.empty())
     {
-        std::string path = info->hwc_sock;
-        if (path.find("/hwc-sock") == std::string::npos)
-            return;
+        m_UnixConnInfo.socket_dir = config.socketInfo.hwc_sock;
+    }
 
-        size_t pos = path.find("/hwc-sock");
-        m_UnixConnInfo.socket_dir = path.substr(0, pos);
-
-        if (getenv("K8S_ENV") == NULL || strcmp(getenv("K8S_ENV"), "true") != 0) {
-            // docker env
-            m_UnixConnInfo.android_instance_id = info->session_id;
-        }
-        else
-        {
-            // k8s env
-            m_UnixConnInfo.android_instance_id = -1; //dont need id for k8s env
-        }
+    if (getenv("K8S_ENV") == NULL || strcmp(getenv("K8S_ENV"), "true") != 0) {
+        // docker env
+        m_UnixConnInfo.android_instance_id = config.socketInfo.session_id;
+    }
+    else
+    {
+        // k8s env
+        m_UnixConnInfo.android_instance_id = -1; //dont need id for k8s env
     }
 }
 
@@ -75,13 +73,13 @@ int CmdHandler::Init()
 int CmdHandler::InitSocket()
 {
     auto sockPath = m_UnixConnInfo.socket_dir;
+
     if (sockPath.length() == 0) {
         std::cout << "Empty or invalid socket_dir path" << std::endl;
         return AICS_ERR_SOCKET_INIT;
     }
     else
     {
-        sockPath += HWC_UNIX_SOCKET;
         if (m_UnixConnInfo.android_instance_id >= 0) {
             sockPath += std::to_string(m_UnixConnInfo.android_instance_id);
         }
@@ -167,7 +165,7 @@ int CmdHandler::SendFDs(boData_t* bo_data)
 
 void CmdHandler::ManageDisplayReqTime(AicEventMetadataPtr& metadata)
 {
-    if (m_lastDispReqSentTS == 0)
+    if (!m_manageFps || m_lastDispReqSentTS == 0)
         return;
 
     long int waitTime = metadata->timeStampUs - m_lastDispReqYmlTS;
@@ -549,8 +547,7 @@ int CmdHandler::InitGfxSurfaceHandler()
         return AICS_ERR_INPUT_STREAM;
 
     GfxStatus status = GFX_OK;
-    status = m_gfx.GfxInit();
-
+    status = m_gfx.GfxInit(m_gfxDeviceStr);
     if (status)
         return AICS_ERR_GFX;
 
