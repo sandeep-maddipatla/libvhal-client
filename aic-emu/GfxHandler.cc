@@ -35,14 +35,6 @@
 
 #define DEFAULT_GFX_DEVICE "/dev/dri/renderD128"
 
-GfxHandler::GfxHandler(const char* deviceStr)
-{
-    if (deviceStr)
-        m_device_str = deviceStr;
-    else
-        m_device_str = DEFAULT_GFX_DEVICE;
-}
-
 GfxHandler::~GfxHandler()
 {
     for (auto it = m_boList.begin(); it != m_boList.end();)
@@ -97,16 +89,16 @@ GfxStatus GfxHandler::GetDrmParam(unsigned long request, int* val)
    return RunIoctl(DRM_IOCTL_I915_GETPARAM, &gp);
 }
 
-GfxStatus GfxHandler::GfxInit()
+GfxStatus GfxHandler::GfxInit(std::string deviceString)
 {
     int sts = GFX_OK;
     int mmap_gtt_version = -1;
 
+    m_device_str = deviceString;
     if(m_device_str.empty())
     {
-        std::cout << "Error: Empty device string in Init" << std::endl;
-        sts = GFX_FAIL;
-        goto exit_logic;
+        std::cout << "Warning: Empty device string. Reverting to default" << std::endl;
+        m_device_str = DEFAULT_GFX_DEVICE;
     }
     else
         std::cout << "Using device " << m_device_str << std::endl;

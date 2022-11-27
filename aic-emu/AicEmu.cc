@@ -17,14 +17,6 @@
 #include <memory>
 #include "CmdHandler.h"
 
-struct AicConfigData_t
-{
-    std::string ymlFileName;
-    std::string contentFileName;
-    std::string deviceString;
-    AicSocketData_t socketInfo;
-};
-
 void Usage()
 {
     std::cout << "Usage: aic-emu <mandatory options> [non-mandatory options] " << std::endl;
@@ -34,6 +26,8 @@ void Usage()
     std::cout << "  --hwc-sock <socketpath>: Path of Unix Socket file" << std::endl;
     std::cout << "\nNon-Mandatory options:" << std::endl;
     std::cout << "  --device <device path> : Device path. Default /dev/dri/renderD128" << std::endl;
+    std::cout << "  --manage-fps <0/1>     : Match fps with timestamps in yml log. Default Enabled(1)" << std::endl;
+    std::cout << "  --informat <format>    : RGBA(Default) / NV12" << std::endl;
     std::cout << "  --help, -h             : Print this help and exit" << std::endl;
     return;
 }
@@ -77,6 +71,18 @@ int ParseArgs(AicConfigData_t& config, int argc, char** argv)
             config.socketInfo.user_id = 0;
             config.socketInfo.android_instance_id = 0;
         }
+        else if (std::string("--informat") == argv[idx])
+        {
+            if (++idx >= argc)
+                break;
+            config.contentFormat = std::string(argv[idx]);
+        }
+        else if (std::string("--manage-fps") == argv[idx])
+        {
+            if (++idx >= argc)
+                break;
+            config.manageFps = (atoi(argv[idx]) == 1) ? true : false;
+        }
         else
         {
             break;
@@ -111,11 +117,11 @@ int main(int argc, char** argv)
 {
     int status = AICS_ERR_NONE;
 
-    AicConfigData_t config;
+    AicConfigData_t config = { .manageFps = true, .contentFormat = "RGBA" };
     status = ParseArgs(config, argc, argv);
     CHECK_STATUS(status);
 
-    auto handler = std::make_unique<CmdHandler>(config.ymlFileName, config.contentFileName, &config.socketInfo);
+    auto handler = std::make_unique<CmdHandler>(config);
     status = handler->Init();
     CHECK_STATUS(status);
 
