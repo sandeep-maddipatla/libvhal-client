@@ -30,12 +30,21 @@ CmdHandler::CmdHandler(AicConfigData_t& config):
     m_ymlFileName(config.ymlFileName),
     m_inputFileName(config.contentFileName),
     m_gfxDeviceStr(config.deviceString),
+    m_inputFormat(config.contentFormat),
     m_props(nullptr),
     m_manageFps(config.manageFps),
     m_lastDispReqSentTS(0),
     m_lastDispReqYmlTS(0),
     m_firstDispReqSentTS(0)
 {
+    //Check formats
+    if (m_inputFormat.compare("RGBA") != 0)
+    {
+        std::cout << "Warning: Invalid Input Format: " << m_inputFormat
+                  << ". Reverting to RGBA (only supported format currently)" << std::endl;
+        m_inputFormat = "RGBA";
+    }
+
     //Socket related data
     if (!config.socketInfo.hwc_sock.empty())
     {

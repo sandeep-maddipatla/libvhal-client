@@ -123,6 +123,7 @@ struct AicConfigData_t
     std::string deviceString;
     AicSocketData_t socketInfo;
     bool        manageFps;
+    std::string contentFormat;
 };
 
 class CmdHandler
@@ -173,6 +174,7 @@ private:
     std::string                       m_inputFileName;
     std::ifstream                     m_inputStream;
     std::string                       m_gfxDeviceStr;
+    std::string                       m_inputFormat;
     GfxHandler                        m_gfx;
 
     //Struct holding operating surface parameters
