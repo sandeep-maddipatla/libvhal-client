@@ -197,6 +197,14 @@ int CmdHandler::Xchng_DisplayRequest(std::vector<std::shared_ptr<void>>& payload
 {
     // send display_event_t + buffer_info_t (+ optional display_control_t)
 
+    static bool firstCallDone = false;
+    if (!firstCallDone) {
+        std::cout << "Sleeping 10s before first Display request" << std::endl;
+        usleep(10000000);
+        std::cout << "Waking up after sleeping" << std::endl;
+        firstCallDone = true;
+    }
+
     if (payload.empty())
         return AICS_ERR_PAYLOAD_EMPTY;
 
